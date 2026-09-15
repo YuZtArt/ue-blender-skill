@@ -1,21 +1,27 @@
-# Unreal And Blender MCP Skill
+# Unreal 与 Blender MCP Skill
 
-A single Codex skill for live Unreal Engine and Blender editors. It merges `ue-blender-mcp-cli` and `reliable-ue-blender-mcp`: a bundled stdio CLI handles discovery and calls; unified instructions handle sequencing, verification, and uncertain outcomes.
+中文 | [English](README.en.md)
 
-## Requirements
+用于操作正在运行的 Unreal Engine 和 Blender 编辑器的统一 Codex skill。它合并了 `ue-blender-mcp-cli` 和 `reliable-ue-blender-mcp`：内置 stdio CLI 负责工具发现与调用，统一操作规范负责调用顺序、结果验证和超时恢复。
 
-- Python 3.11+ for the CLI, using only the standard library.
-- Unreal Monolith/UEMCP and/or BlenderMCP installed and configured separately, with the relevant editor and addon running.
-- A stdio MCP server named `unreal` or `blender`. Only the host you use is required. HTTP/SSE configurations require an available direct MCP fallback.
-- Codex or another agent able to load `SKILL.md` and execute commands.
+## 依赖与前置条件
 
-This repository does not install editors, MCP servers, or addons. Unreal convenience commands assume Monolith's namespace/action API; generic calls use advertised tools.
+| 依赖 | 用途与要求 |
+| --- | --- |
+| Python 3.11 或更新版本 | 运行内置 CLI，仅使用 Python 标准库 |
+| Unreal Monolith／UEMCP | 操作 Unreal 编辑器，需要自行安装并配置对应 MCP 服务和编辑器插件 |
+| BlenderMCP | 操作 Blender，需要自行安装并配置 MCP 服务和 Blender 插件 |
+| Codex 或兼容代理 | 能读取 `SKILL.md` 并执行命令 |
 
-## Install
+**只需配置实际使用的应用，无需同时安装两个 MCP。** 使用时应启动对应编辑器并启用插件。CLI 的便捷命令使用 `unreal`、`blender` 作为 MCP 服务名称。
 
-Clone the repository and copy **only `skills/ue-blender`** into your personal skills directory.
+内置 CLI 仅支持 **stdio**。HTTP／SSE 配置需要代理环境中可用的直接 MCP 工具作为备用入口。本仓库不包含也不会自动安装编辑器、MCP 服务或插件。Unreal 便捷命令采用 Monolith 的命名空间／动作接口，其他实现应按实际公布的工具使用通用调用。
 
-Windows PowerShell:
+## 安装
+
+克隆仓库，将 **`skills/ue-blender` 文件夹**复制到个人 skills 目录。
+
+Windows PowerShell：
 
 ```powershell
 git clone https://github.com/YuZtArt/ue-blender-skill.git
@@ -24,7 +30,7 @@ New-Item -ItemType Directory -Force $skillParent | Out-Null
 Copy-Item -Recurse ./ue-blender-skill/skills/ue-blender $skillParent
 ```
 
-macOS/Linux:
+macOS／Linux：
 
 ```bash
 git clone https://github.com/YuZtArt/ue-blender-skill.git
@@ -32,13 +38,15 @@ mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
 cp -R ue-blender-skill/skills/ue-blender "${CODEX_HOME:-$HOME/.codex}/skills/"
 ```
 
-For updates, replace the existing `ue-blender` folder with the new version. If either predecessor is installed, move its folder outside the active skills directory after installing the replacement. Keeping all three active creates overlapping routing instructions. Start a new agent session to load the skill.
+更新时，用新版替换已安装的 `ue-blender` 文件夹。如果安装过两个旧 skill，请在安装新版后，将旧文件夹移出活动 skills 目录保存，避免重复触发。新建代理会话以加载新版。
 
-Example: `Use $ue-blender to inspect the current Blender scene and verify its scale before exporting to Unreal.`
+使用示例：
 
-## Configure And Check
+> 使用 $ue-blender 检查当前 Blender 场景，在导出到 Unreal 前验证模型比例。
 
-Reuse your Codex `config.toml` or project `.mcp.json`. Server commands must point to your own installed MCP bridge. This JSON shows the configuration shape, not an installable server distribution:
+## 配置与连接检查
+
+可复用已有的 Codex `config.toml` 或项目 `.mcp.json`。服务命令应指向你实际安装的 MCP 桥接程序。以下仅演示 JSON 配置结构，其中的路径需要替换，不是可直接安装的 MCP 服务：
 
 ```json
 {
@@ -51,31 +59,39 @@ Reuse your Codex `config.toml` or project `.mcp.json`. Server commands must poin
 }
 ```
 
-From your active project directory, run the installed script:
+在当前项目目录运行已安装的脚本，将示例路径替换成实际位置：
 
 ```text
 python /path/to/ue-blender/scripts/mcp_cli.py doctor --server blender
 python /path/to/ue-blender/scripts/mcp_cli.py preflight blender
 ```
 
-On Windows, `scripts/mcpctl.ps1` locates Python; set `MCP_CLI_PYTHON` if needed. On macOS/Linux use `python3` when appropriate. See the [command reference](skills/ue-blender/references/commands.md) for precedence, discovery, timing, and output semantics.
+`doctor` 检查本地配置与启动命令，`preflight` 检查实际连接。检查 Unreal 时，将上述 `blender` 改为 `unreal`。
 
-## Behavior And Limits
+Windows 可使用 `scripts/mcpctl.ps1` 自动定位 Python，也可通过 `MCP_CLI_PYTHON` 指定解释器。macOS／Linux 按环境使用 `python3`。配置优先级、工具发现、超时参数和输出格式见[命令参考](skills/ue-blender/references/commands.md)。
 
-- Sequential calls, schema discovery, and explicit read/write intent.
-- Separate verification after mutations and focused asset/file saves.
-- Screenshots extracted to local files.
-- Bounded read retries and write-outcome verification after lost responses.
-- Host-specific guidance and staged asset transfers.
+## 功能与边界
 
-Intent is a label, not a sandbox. The client does not implement a cross-process lock, transactions, or editor-side cancellation. Follow the recovery instructions. Saved-file Blender background processing is a separate workflow; the `blender-batch` skill is optional, not a dependency.
+- 按顺序调用编辑器，查询工具 schema，并明确标记读写意图。
+- 修改后单独验证结果，只保存目标资产或文件。
+- 将截图等二进制返回内容保存为本地文件。
+- 限制读取重试次数，写入响应丢失后先核实状态再决定是否重试。
+- 提供 Unreal、Blender 专属操作说明与分阶段资产传输流程。
 
-## Validation
+读写意图是标签，不是执行沙箱。CLI 不提供跨进程锁、事务或编辑器端取消机制，操作时需遵循恢复说明。对已保存 Blender 文件进行后台批处理属于另一种工作流；`blender-batch` 是可选 skill，不是本 skill 的依赖。
+
+## 验证
+
+在仓库根目录运行：
 
 ```text
 python -m unittest discover -s tests -v
 ```
 
-Tests use a fake local stdio server and temporary configurations, without connecting to editors. They exercise configuration precedence, single-host diagnostics, tool calls and errors, lost responses, timeouts, and binary output. Passing tests does not certify every editor/server version; use a read-only preflight against your installation.
+测试使用本地模拟 stdio 服务和临时配置，不连接真实编辑器。覆盖配置优先级、单应用检查、工具调用与错误、响应丢失、超时及二进制输出。测试通过不代表兼容所有编辑器和 MCP 版本；请对自己的安装执行只读连接检查。
 
-Do not commit local MCP configurations, credentials, editor assets, or generated captures.
+不要将本机 MCP 配置、凭据、编辑器资产或生成的截图提交到仓库。
+
+## 许可证
+
+本仓库采用 [MIT 许可证](LICENSE)。外部编辑器、MCP 服务和插件仍遵循各自的许可证。再分发此 skill 或脚本时，请保留许可证文本。
