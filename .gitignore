@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+.mcp.json
+.mcp-cli-artifacts/
+Saved/
+.venv/

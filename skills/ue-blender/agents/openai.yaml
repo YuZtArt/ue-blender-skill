@@ -1,0 +1,4 @@
+interface:
+  display_name: "Unreal And Blender MCP"
+  short_description: "Operate Unreal and Blender with bounded MCP calls"
+  default_prompt: "Use $ue-blender to inspect the connected Unreal or Blender editor and verify the requested changes."
