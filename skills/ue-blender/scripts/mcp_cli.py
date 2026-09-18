@@ -79,7 +79,20 @@ def _parse_json_config(path: Path) -> dict[str, ServerConfig]:
         document = json.loads(path.read_text(encoding="utf-8-sig"))
     except (OSError, json.JSONDecodeError) as exc:
         raise CliError(f"cannot read MCP config {path}: {exc}") from exc
-    return _normalize_servers(document.get("mcpServers", {}), path)
+    if "mcpServers" in document:
+        return _normalize_servers(document["mcpServers"], path)
+    # OpenCode JSON, including the resolved output of `opencode debug config`.
+    converted = {}
+    for name, raw in document.get("mcp", {}).items():
+        if not isinstance(raw, dict) or raw.get("type") != "local":
+            continue
+        command = raw.get("command", [])
+        if not isinstance(command, list) or not command or not all(isinstance(x, str) for x in command):
+            raise CliError(f"OpenCode server {name!r} has invalid command array")
+        converted[name] = {"command": command[0], "args": command[1:],
+                           "env": raw.get("environment", {}),
+                           "enabled": raw.get("enabled", True)}
+    return _normalize_servers(converted, path)
 
 
 def _parse_toml_config(path: Path) -> dict[str, ServerConfig]:

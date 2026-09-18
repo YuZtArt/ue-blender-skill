@@ -9,6 +9,12 @@ Use the bundled `scripts/mcp_cli.py` (Python 3.11+) or Windows wrapper `scripts/
 
 Read [references/commands.md](references/commands.md) for configuration, commands, and output semantics. If Python or a supported stdio server is unavailable, state the concrete gap before using an exposed direct MCP tool. Apply the same call and recovery rules to that fallback; do not switch transports merely to repeat a stalled write.
 
+## Agent Compatibility
+
+In OpenCode, read [references/opencode.md](references/opencode.md) before the first command. Resolve scripts from the directory of the loaded skill, not from Codex's personal directory. The same skill works in both clients; no direct MCP registration is needed when using the CLI. For first-time setup or missing dependencies, use the companion `ue-blender-setup` skill if installed.
+
+If setup created a dedicated `ue-blender.mcp.json` in the client configuration directory, pass its absolute path with `--config` on every command, in either client. Otherwise use the existing configuration discovery rules.
+
 ## Workflow
 
 1. Run `doctor --server unreal` or `doctor --server blender` for each needed host, then preflight hosts separately. Only required hosts need to be configured.

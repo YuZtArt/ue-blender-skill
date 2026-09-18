@@ -1,0 +1,4 @@
+interface:
+  display_name: "Unreal And Blender Setup"
+  short_description: "Set up Unreal and Blender MCP for your agent"
+  default_prompt: "Use $ue-blender-setup to configure and verify the required Unreal or Blender MCP environment."

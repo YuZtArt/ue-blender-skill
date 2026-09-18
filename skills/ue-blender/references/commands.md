@@ -1,5 +1,7 @@
 # CLI Reference
 
+For OpenCode installation and explicit configuration, read [opencode.md](opencode.md). `--config` also accepts strict OpenCode JSON with local MCP command arrays. JSONC and OpenCode variable substitution require a resolved configuration export first.
+
 Requires Python 3.11+ with no third-party packages. Resolve this skill's installed directory and run commands from the active project directory.
 
 ```powershell

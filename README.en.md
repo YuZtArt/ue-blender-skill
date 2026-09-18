@@ -4,6 +4,19 @@
 
 A single Codex skill for live Unreal Engine and Blender editors. It merges `ue-blender-mcp-cli` and `reliable-ue-blender-mcp`: a bundled stdio CLI handles discovery and calls; unified instructions handle sequencing, verification, and uncertain outcomes.
 
+## Skills And OpenCode
+
+- `ue-blender`: ongoing live-editor operations, verification, and recovery.
+- `ue-blender-setup`: agent-guided dependency installation, local connection configuration, and read-only validation. It does not bundle editors or promise unattended plugin installation.
+
+For OpenCode, copy both folders from `skills/` into `~/.config/opencode/skills/` (or the config directory reported by `opencode debug paths`). Verify discovery with `opencode debug skill`, then ask: "Use ue-blender-setup to initialize Unreal MCP for this project."
+
+The CLI accepts explicit dedicated connection files and strict OpenCode JSON local MCP entries. JSONC, variable substitution, and layered settings require a resolved export containing only the relevant MCP entries. See [OpenCode instructions](skills/ue-blender/references/opencode.md).
+
+Verified locally: skill discovery on OpenCode 1.18.22, and a live Monolith 0.22.0 / UE 5.8 read. The Blender bridge launched but its addon was disconnected; Blender end-to-end operation remains unverified.
+
+Upstreams: [Monolith](https://github.com/tumourlove/monolith), [BlenderMCP](https://github.com/ahujasid/mcp-for-blender). See [setup providers](skills/ue-blender-setup/references/providers.md) for version and installation guidance.
+
 ## Requirements
 
 - Python 3.11+ for the CLI, using only the standard library.
@@ -15,7 +28,7 @@ This repository does not install editors, MCP servers, or addons. Unreal conveni
 
 ## Install
 
-Clone the repository and copy **only `skills/ue-blender`** into your personal skills directory.
+For Codex, clone the repository and copy both `skills/ue-blender` and `skills/ue-blender-setup` into your personal skills directory.
 
 Windows PowerShell:
 
@@ -24,6 +37,7 @@ git clone https://github.com/YuZtArt/ue-blender-skill.git
 $skillParent = if ($env:CODEX_HOME) { Join-Path $env:CODEX_HOME 'skills' } else { Join-Path $HOME '.codex/skills' }
 New-Item -ItemType Directory -Force $skillParent | Out-Null
 Copy-Item -Recurse ./ue-blender-skill/skills/ue-blender $skillParent
+Copy-Item -Recurse ./ue-blender-skill/skills/ue-blender-setup $skillParent
 ```
 
 macOS/Linux:
@@ -31,7 +45,7 @@ macOS/Linux:
 ```bash
 git clone https://github.com/YuZtArt/ue-blender-skill.git
 mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
-cp -R ue-blender-skill/skills/ue-blender "${CODEX_HOME:-$HOME/.codex}/skills/"
+cp -R ue-blender-skill/skills/ue-blender ue-blender-skill/skills/ue-blender-setup "${CODEX_HOME:-$HOME/.codex}/skills/"
 ```
 
 For updates, replace the existing `ue-blender` folder with the new version. If either predecessor is installed, move its folder outside the active skills directory after installing the replacement. Keeping all three active creates overlapping routing instructions. Start a new agent session to load the skill.

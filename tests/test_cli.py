@@ -80,6 +80,25 @@ class CliTests(unittest.TestCase):
         self.assertNotIn('data', block)
         self.assertEqual(Path(block['saved_file']).read_bytes(), b'fixture-image-bytes')
 
+    def test_opencode_native_json(self):
+        self.config.write_text(json.dumps({'mcp': {
+            'blender': {'type': 'local', 'command': [sys.executable, str(FIXTURE)],
+                        'environment': {'SETUP_TEST': 'yes'}},
+            'unreal': {'type': 'local', 'command': [sys.executable, str(FIXTURE)], 'enabled': False},
+            'remote': {'type': 'remote', 'url': 'https://example.invalid/mcp'}
+        }}), encoding='utf-8')
+        parsed = cli._parse_json_config(self.config)
+        self.assertEqual(set(parsed), {'blender'})
+        self.assertEqual(parsed['blender'].env, {'SETUP_TEST': 'yes'})
+        self.assertEqual(self.run_cli('doctor', '--server', 'blender')[0], 0)
+        self.assertEqual(self.run_cli('preflight', 'blender')[0], 0)
+
+    def test_invalid_opencode_command(self):
+        self.config.write_text(json.dumps({'mcp': {'blender': {
+            'type': 'local', 'command': 'not-an-array'}}}), encoding='utf-8')
+        with self.assertRaises(cli.CliError):
+            cli._parse_json_config(self.config)
+
     def test_config_precedence(self):
         codex_dir = self.root / 'codex'
         codex_dir.mkdir()

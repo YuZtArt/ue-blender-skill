@@ -2,7 +2,39 @@
 
 中文 | [English](README.en.md)
 
-用于操作正在运行的 Unreal Engine 和 Blender 编辑器的统一 Codex skill。它合并了 `ue-blender-mcp-cli` 和 `reliable-ue-blender-mcp`：内置 stdio CLI 负责工具发现与调用，统一操作规范负责调用顺序、结果验证和超时恢复。
+用于操作正在运行的 Unreal Engine 和 Blender 编辑器的统一 Codex／OpenCode skill。它合并了 `ue-blender-mcp-cli` 和 `reliable-ue-blender-mcp`：内置 stdio CLI 负责工具发现与调用，统一操作规范负责调用顺序、结果验证和超时恢复。
+
+## 两个 Skill
+
+| Skill | 用途 |
+| --- | --- |
+| `ue-blender` | 日常操作：检查编辑器、修改资产、截图、验证与超时恢复 |
+| `ue-blender-setup` | 初始化：检查环境、安装所需组件、生成本机连接配置、验证连通性 |
+
+初始化 skill 是由代理执行的安装与配置流程，不是包含 UE、Blender 或插件的离线一键安装包。只需要 UE 时，不会要求安装 Blender。
+
+## OpenCode 安装
+
+克隆仓库后，将两个文件夹复制到 OpenCode 的 skills 目录。标准 Windows 配置目录示例：
+
+```powershell
+git clone https://github.com/YuZtArt/ue-blender-skill.git
+$skillParent = Join-Path $HOME '.config/opencode/skills'
+New-Item -ItemType Directory -Force $skillParent | Out-Null
+Copy-Item -Recurse ./ue-blender-skill/skills/ue-blender $skillParent
+Copy-Item -Recurse ./ue-blender-skill/skills/ue-blender-setup $skillParent
+opencode debug skill
+```
+
+自定义配置目录以 `opencode debug paths` 为准；macOS／Linux 可复制到 `~/.config/opencode/skills/`。更新时请先备份并替换旧文件夹，避免嵌套复制。
+
+然后对 OpenCode 说：**“使用 ue-blender-setup，为当前项目初始化 Unreal MCP。”** 已配置的环境可直接说：**“使用 ue-blender 检查当前 Unreal 项目。”**
+
+CLI 支持通过 `--config` 指定独立连接文件，也支持 OpenCode 的严格 JSON 本地 MCP 配置。JSONC、变量替换及多层配置需要先通过 OpenCode 解析，再提取所需 MCP 条目。详见 [OpenCode 兼容说明](skills/ue-blender/references/opencode.md)。不需要额外注册直接 MCP 工具。
+
+本机验证：OpenCode 1.18.22 能发现 skill，CLI 已连接 Monolith 0.22.0／UE 5.8；Blender 桥接进程可启动，但验证时插件未连接，因此不宣称 Blender 端到端验证通过。
+
+上游依赖：[Monolith](https://github.com/tumourlove/monolith) · [BlenderMCP](https://github.com/ahujasid/mcp-for-blender)。版本选择和安装要求见[初始化参考](skills/ue-blender-setup/references/providers.md)。
 
 ## 依赖与前置条件
 
@@ -19,7 +51,7 @@
 
 ## 安装
 
-克隆仓库，将 **`skills/ue-blender` 文件夹**复制到个人 skills 目录。
+以下是 Codex 安装方式。克隆仓库，将 `skills/ue-blender` 和 `skills/ue-blender-setup` 两个文件夹复制到个人 skills 目录。
 
 Windows PowerShell：
 
@@ -28,6 +60,7 @@ git clone https://github.com/YuZtArt/ue-blender-skill.git
 $skillParent = if ($env:CODEX_HOME) { Join-Path $env:CODEX_HOME 'skills' } else { Join-Path $HOME '.codex/skills' }
 New-Item -ItemType Directory -Force $skillParent | Out-Null
 Copy-Item -Recurse ./ue-blender-skill/skills/ue-blender $skillParent
+Copy-Item -Recurse ./ue-blender-skill/skills/ue-blender-setup $skillParent
 ```
 
 macOS／Linux：
@@ -35,7 +68,7 @@ macOS／Linux：
 ```bash
 git clone https://github.com/YuZtArt/ue-blender-skill.git
 mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
-cp -R ue-blender-skill/skills/ue-blender "${CODEX_HOME:-$HOME/.codex}/skills/"
+cp -R ue-blender-skill/skills/ue-blender ue-blender-skill/skills/ue-blender-setup "${CODEX_HOME:-$HOME/.codex}/skills/"
 ```
 
 更新时，用新版替换已安装的 `ue-blender` 文件夹。如果安装过两个旧 skill，请在安装新版后，将旧文件夹移出活动 skills 目录保存，避免重复触发。新建代理会话以加载新版。
